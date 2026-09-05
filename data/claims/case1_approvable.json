@@ -1,0 +1,62 @@
+{
+  "claim_id": "CLM-2026-001",
+  "case_name": "Case 1: Standard Approvable Accident Claim",
+  "claim_type": "Accidental Damage",
+  "vehicle_type": "Car",
+  "vehicle_model": "Honda City i-VTEC",
+  "registration_number": "KA-01-MJ-4321",
+  "insured_declared_value": 800000,
+  "incident_date": "2026-08-25",
+  "report_date": "2026-08-27",
+  "incident_location": "MG Road Underground Parking, Bengaluru",
+  "claimed_amount": 45000,
+  "customer_description": "While reversing into a tight parking space in the MG Road underground parking garage, the vehicle rear bumper collided with a low concrete support pillar, causing damage to the rear bumper, tail lamp assembly, and rear parking sensors.",
+  "submitted_documents": [
+    {
+      "doc_type": "Claim Form",
+      "doc_id": "DOC-CF-001",
+      "fields": {
+        "incident_date": "2026-08-25",
+        "report_date": "2026-08-27",
+        "vehicle_model": "Honda City i-VTEC",
+        "registration_number": "KA-01-MJ-4321",
+        "driver_license_no": "DL-1420110012345",
+        "incident_type": "Collision with stationary object"
+      }
+    },
+    {
+      "doc_type": "Repair Estimate",
+      "doc_id": "DOC-RE-001",
+      "fields": {
+        "estimate_date": "2026-08-27",
+        "incident_date": "2026-08-25",
+        "garage_name": "Honda Authorized Service Center, Indiranagar",
+        "vehicle_model": "Honda City i-VTEC",
+        "registration_number": "KA-01-MJ-4321",
+        "estimated_cost": 45000,
+        "parts_list": ["Rear Bumper Assembly", "Right Tail Lamp Lens", "Parking Sensor Kit"]
+      }
+    },
+    {
+      "doc_type": "Registration Certificate",
+      "doc_id": "DOC-RC-001",
+      "fields": {
+        "registration_number": "KA-01-MJ-4321",
+        "owner_name": "Rajesh Kumar",
+        "vehicle_model": "Honda City i-VTEC",
+        "engine_number": "ENG-HC-887612",
+        "chassis_number": "CHS-HC-991204"
+      }
+    },
+    {
+      "doc_type": "Driving License",
+      "doc_id": "DOC-DL-001",
+      "fields": {
+        "license_number": "DL-1420110012345",
+        "holder_name": "Rajesh Kumar",
+        "valid_until": "2032-10-15",
+        "vehicle_class": "LMV"
+      }
+    }
+  ]
+}

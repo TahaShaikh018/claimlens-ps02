@@ -1,0 +1,46 @@
+{
+  "claim_id": "CLM-2026-003",
+  "case_name": "Case 3: Missing Required Police FIR (Theft Claim)",
+  "claim_type": "Vehicle Theft",
+  "vehicle_type": "Two-Wheeler",
+  "vehicle_model": "Royal Enfield Classic 350",
+  "registration_number": "DL-03-XY-1234",
+  "insured_declared_value": 180000,
+  "incident_date": "2026-08-20",
+  "report_date": "2026-08-21",
+  "incident_location": "Rajiv Chowk Metro Station Parking, New Delhi",
+  "claimed_amount": 180000,
+  "customer_description": "I parked my Royal Enfield motorcycle outside Rajiv Chowk Metro station at 8:00 AM before taking the metro to work. Upon returning at 7:30 PM, the handlebar lock was broken and the motorcycle was missing from the parking lot.",
+  "submitted_documents": [
+    {
+      "doc_type": "Claim Form",
+      "doc_id": "DOC-CF-003",
+      "fields": {
+        "incident_date": "2026-08-20",
+        "report_date": "2026-08-21",
+        "vehicle_model": "Royal Enfield Classic 350",
+        "registration_number": "DL-03-XY-1234",
+        "driver_license_no": "DL-042015007788",
+        "claim_type": "Total Loss - Theft"
+      }
+    },
+    {
+      "doc_type": "Registration Certificate",
+      "doc_id": "DOC-RC-003",
+      "fields": {
+        "registration_number": "DL-03-XY-1234",
+        "owner_name": "Amitabh Sharma",
+        "vehicle_model": "Royal Enfield Classic 350"
+      }
+    },
+    {
+      "doc_type": "Driving License",
+      "doc_id": "DOC-DL-003",
+      "fields": {
+        "license_number": "DL-042015007788",
+        "holder_name": "Amitabh Sharma",
+        "valid_until": "2031-11-12"
+      }
+    }
+  ]
+}

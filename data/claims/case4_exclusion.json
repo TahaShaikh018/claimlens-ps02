@@ -1,0 +1,59 @@
+{
+  "claim_id": "CLM-2026-004",
+  "case_name": "Case 4: Exclusion Triggered (Illegal Racing / Track Use)",
+  "claim_type": "Accidental Damage",
+  "vehicle_type": "Two-Wheeler",
+  "vehicle_model": "KTM Duke 390",
+  "registration_number": "KA-05-EV-5555",
+  "insured_declared_value": 250000,
+  "incident_date": "2026-08-28",
+  "report_date": "2026-08-29",
+  "incident_location": "Kari Motor Speedway Circuit, Coimbatore",
+  "claimed_amount": 120000,
+  "customer_description": "During a competitive amateur track racing and speed-testing event at Kari Motor Speedway, vehicle lost traction on turn 4 at high speed, slid off the tarmac into gravel trap, causing engine seizure, fairing destruction, and bent front fork.",
+  "submitted_documents": [
+    {
+      "doc_type": "Claim Form",
+      "doc_id": "DOC-CF-004",
+      "fields": {
+        "incident_date": "2026-08-28",
+        "report_date": "2026-08-29",
+        "vehicle_model": "KTM Duke 390",
+        "registration_number": "KA-05-EV-5555",
+        "driver_license_no": "KA-052020003344",
+        "incident_type": "Track crash during speed competition"
+      }
+    },
+    {
+      "doc_type": "Repair Estimate",
+      "doc_id": "DOC-RE-004",
+      "fields": {
+        "estimate_date": "2026-08-30",
+        "incident_date": "2026-08-28",
+        "garage_name": "KTM Performance Service",
+        "vehicle_model": "KTM Duke 390",
+        "registration_number": "KA-05-EV-5555",
+        "estimated_cost": 120000,
+        "parts_list": ["Engine Block Overhaul", "Front Suspension Assembly", "Fairing Kit"]
+      }
+    },
+    {
+      "doc_type": "Registration Certificate",
+      "doc_id": "DOC-RC-004",
+      "fields": {
+        "registration_number": "KA-05-EV-5555",
+        "owner_name": "Rohan Verma",
+        "vehicle_model": "KTM Duke 390"
+      }
+    },
+    {
+      "doc_type": "Driving License",
+      "doc_id": "DOC-DL-004",
+      "fields": {
+        "license_number": "KA-052020003344",
+        "holder_name": "Rohan Verma",
+        "valid_until": "2034-03-18"
+      }
+    }
+  ]
+}

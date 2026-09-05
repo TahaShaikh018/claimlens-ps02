@@ -1,0 +1,59 @@
+{
+  "claim_id": "CLM-2026-005",
+  "case_name": "Case 5: Ambiguous Evidence & Human Escalation Required",
+  "claim_type": "Accidental Damage",
+  "vehicle_type": "Car",
+  "vehicle_model": "Maruti Swift ZXi",
+  "registration_number": "TN-07-BW-7777",
+  "insured_declared_value": 500000,
+  "incident_date": "2026-08-15",
+  "report_date": "2026-08-20",
+  "incident_location": "Mount Road, Chennai",
+  "claimed_amount": 210000,
+  "customer_description": "Vehicle stalled in knee-deep water on Mount Road during torrential monsoon rain. Customer reports engine hydrostatic lock due to water submergence while idling in traffic.",
+  "submitted_documents": [
+    {
+      "doc_type": "Claim Form",
+      "doc_id": "DOC-CF-005",
+      "fields": {
+        "incident_date": "2026-08-15",
+        "report_date": "2026-08-20",
+        "vehicle_model": "Maruti Swift ZXi",
+        "registration_number": "TN-07-BW-7777",
+        "driver_license_no": "TN-072017004455",
+        "incident_type": "Water submergence & engine stall"
+      }
+    },
+    {
+      "doc_type": "Repair Estimate",
+      "doc_id": "DOC-RE-005",
+      "fields": {
+        "estimate_date": "2026-08-21",
+        "incident_date": "2026-08-15",
+        "garage_name": "Maruti Service Zone",
+        "vehicle_model": "Maruti Swift ZXi",
+        "registration_number": "TN-07-BW-7777",
+        "estimated_cost": 210000,
+        "parts_list": ["Front Axle Bend Replacement", "Chassis Subframe Alignment", "Lower Control Arm", "Radiator Grill Impact Kit", "Engine Electrical Harness"]
+      }
+    },
+    {
+      "doc_type": "Registration Certificate",
+      "doc_id": "DOC-RC-005",
+      "fields": {
+        "registration_number": "TN-07-BW-7777",
+        "owner_name": "Karthik Subramanian",
+        "vehicle_model": "Maruti Swift ZXi"
+      }
+    },
+    {
+      "doc_type": "Driving License",
+      "doc_id": "DOC-DL-005",
+      "fields": {
+        "license_number": "TN-072017004455",
+        "holder_name": "Karthik Subramanian",
+        "valid_until": "2029-08-10"
+      }
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "policy_metadata": {
+    "policy_name": "Standard Comprehensive Motor Insurance Policy (Private Cars & Two-Wheelers)",
+    "policy_version": "2026-V1",
+    "effective_date": "2026-01-01"
+  },
+  "clauses": [
+    {
+      "clause_id": "POLICY-01",
+      "title": "Policy Scope & Vehicle Eligibility",
+      "category": "Scope",
+      "text": "This policy provides comprehensive coverage for registered private cars and two-wheelers against accidental damage, third-party liability, and theft, provided the policy is active and premium is fully paid at the time of the incident."
+    },
+    {
+      "clause_id": "POLICY-02",
+      "title": "Accidental Damage Coverage",
+      "category": "Coverage",
+      "text": "The insurer will indemnify the insured against loss or damage to the vehicle and its accessories while thereon by accidental external means, fire, explosion, self-ignition, lightning, earthquake, flood, storm, or landslide."
+    },
+    {
+      "clause_id": "POLICY-03",
+      "title": "Theft Coverage & Mandatory FIR",
+      "category": "Coverage",
+      "text": "In the event of total loss due to vehicle theft, coverage is subject to immediate reporting. The insured must file a formal Police First Information Report (FIR) within 24 hours of discovery of theft and notify the insurer immediately. Missing FIR renders theft claims unpayable."
+    },
+    {
+      "clause_id": "POLICY-04",
+      "title": "General Policy Exclusions",
+      "category": "Exclusion",
+      "text": "The company shall not be liable for any claim arising out of: (a) Driving under the influence of alcohol, drugs, or intoxicating substances; (b) Driving without a valid driving license; (c) Use of vehicle for racing, speed testing, commercial transport, or illegal activities; (d) Consequential loss, depreciation, or wear and tear; (e) Damage sustained outside the geographical boundaries of India."
+    },
+    {
+      "clause_id": "POLICY-05",
+      "title": "Claim Reporting Windows",
+      "category": "Condition",
+      "text": "Notice of any accidental damage claim must be given in writing to the company within 7 calendar days of the incident occurrence. Notice of any theft claim must be submitted within 24 hours of discovery. Late reporting without documented extenuating circumstances may result in claim rejection."
+    },
+    {
+      "clause_id": "POLICY-06",
+      "title": "Mandatory Claim Documents",
+      "category": "Condition",
+      "text": "To process an accidental damage claim, the following documents are mandatory: (1) Duly signed Claim Form, (2) Detailed Repair Estimate or Repair Invoice from authorized garage, (3) Copy of Vehicle Registration Certificate (RC), and (4) Copy of Driver's Driving License (DL). For theft claims, a Police First Information Report (FIR) is strictly required."
+    },
+    {
+      "clause_id": "POLICY-07",
+      "title": "Insured Declared Value (IDV) & Total Loss Limit",
+      "category": "Limit",
+      "text": "The maximum liability payable under accidental damage or theft shall not exceed the Insured Declared Value (IDV) specified in the policy schedule. If the total repair estimate exceeds 75% of the vehicle's IDV, the claim shall be treated as Constructive Total Loss (CTL)."
+    },
+    {
+      "clause_id": "POLICY-08",
+      "title": "Compulsory Excess / Deductible",
+      "category": "Deductible",
+      "text": "All accidental damage claims are subject to a compulsory deductible of ₹1,000 for Two-Wheelers and ₹2,000 for Private Cars. This amount will be deducted from the final approved claim settlement amount."
+    }
+  ]
+}

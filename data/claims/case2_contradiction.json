@@ -1,0 +1,59 @@
+{
+  "claim_id": "CLM-2026-002",
+  "case_name": "Case 2: Document Date & Amount Contradiction Claim",
+  "claim_type": "Accidental Damage",
+  "vehicle_type": "Car",
+  "vehicle_model": "Hyundai i20 Asta",
+  "registration_number": "MH-02-CB-9876",
+  "insured_declared_value": 650000,
+  "incident_date": "2026-08-10",
+  "report_date": "2026-08-15",
+  "incident_location": "Western Express Highway, Mumbai",
+  "claimed_amount": 62000,
+  "customer_description": "Vehicle was hit from the side by an overtaking auto-rickshaw on Western Express Highway causing severe door denting and side mirror breakage.",
+  "submitted_documents": [
+    {
+      "doc_type": "Claim Form",
+      "doc_id": "DOC-CF-002",
+      "fields": {
+        "incident_date": "2026-08-10",
+        "report_date": "2026-08-15",
+        "vehicle_model": "Hyundai i20 Asta",
+        "registration_number": "MH-02-CB-9876",
+        "driver_license_no": "MH-022018009911",
+        "claimed_amount": 62000
+      }
+    },
+    {
+      "doc_type": "Repair Estimate",
+      "doc_id": "DOC-RE-002",
+      "fields": {
+        "estimate_date": "2026-08-22",
+        "incident_date": "2026-08-20",
+        "garage_name": "Shree Ram Auto Body Works",
+        "vehicle_model": "Hyundai i20 Magna",
+        "registration_number": "MH-02-CB-9876",
+        "estimated_cost": 88000,
+        "parts_list": ["Left Front Door Panel", "Left Rear Door Panel", "Side Mirror Assembly"]
+      }
+    },
+    {
+      "doc_type": "Registration Certificate",
+      "doc_id": "DOC-RC-002",
+      "fields": {
+        "registration_number": "MH-02-CB-9876",
+        "owner_name": "Sneha Patil",
+        "vehicle_model": "Hyundai i20 Asta"
+      }
+    },
+    {
+      "doc_type": "Driving License",
+      "doc_id": "DOC-DL-002",
+      "fields": {
+        "license_number": "MH-022018009911",
+        "holder_name": "Sneha Patil",
+        "valid_until": "2030-05-20"
+      }
+    }
+  ]
+}
