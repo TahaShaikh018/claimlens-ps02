@@ -44,6 +44,7 @@
   --font-mono: 'JetBrains Mono', monospace;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   --radius-md: 6px;
   --radius-lg: 8px;
 }
@@ -213,7 +214,7 @@ body {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .sidebar-header {
@@ -247,6 +248,16 @@ body {
   color: var(--text-muted);
 }
 
+.input-actions-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mt-6 {
+  margin-top: 6px;
+}
+
 .hidden-select {
   display: none;
 }
@@ -257,7 +268,7 @@ body {
   flex-direction: column;
   gap: 8px;
   overflow-y: auto;
-  max-height: 480px;
+  max-height: 420px;
 }
 
 .queue-card {
@@ -343,7 +354,7 @@ body {
 
 .code-editor {
   width: 100%;
-  height: 220px;
+  height: 200px;
   padding: 8px;
   background: #0f172a;
   color: #38bdf8;
@@ -496,9 +507,7 @@ body {
   color: #991b1b;
 }
 
-/* ---------------------------------------------------- */
-/* TABS & CONTAINERS (Shadcn Tabs Pattern) */
-/* ---------------------------------------------------- */
+/* TABS & CONTAINERS */
 .tabs-wrapper {
   display: flex;
   flex-direction: column;
@@ -557,9 +566,7 @@ body {
   display: block;
 }
 
-/* ---------------------------------------------------- */
 /* CONTRADICTIONS SIDE-BY-SIDE CARDS */
-/* ---------------------------------------------------- */
 .contradictions-stack {
   display: flex;
   flex-direction: column;
@@ -589,12 +596,6 @@ body {
   font-weight: 700;
   font-size: 13px;
   color: var(--status-reject);
-}
-
-.contradiction-card-title {
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--text-primary);
 }
 
 /* Visual Side-by-Side Comparison Box */
@@ -669,9 +670,7 @@ body {
   font-weight: 600;
 }
 
-/* ---------------------------------------------------- */
-/* TABLES & FINDINGS (Shadcn Table Pattern) */
-/* ---------------------------------------------------- */
+/* TABLES & FINDINGS */
 .rules-table-view, .findings-stack, .clauses-stack {
   display: flex;
   flex-direction: column;
@@ -823,7 +822,7 @@ body {
   content: "" !important;
 }
 
-/* Buttons (Shadcn Button System) */
+/* BUTTONS */
 .btn {
   padding: 8px 14px;
   border-radius: var(--radius-md);
@@ -875,7 +874,7 @@ body {
 }
 
 .btn-sm {
-  padding: 5px 10px;
+  padding: 6px 12px;
   font-size: 12px;
 }
 
@@ -929,4 +928,165 @@ body {
 
 .hidden {
   display: none !important;
+}
+
+/* ---------------------------------------------------- */
+/* SHADCN MODAL DIALOG COMPONENT FOR CUSTOM CLAIM INPUT */
+/* ---------------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-subtle);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+}
+
+.modal-title-group h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.modal-close-btn:hover {
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field.full-width {
+  grid-column: span 2;
+}
+
+.form-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.form-control:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-light);
+}
+
+.form-textarea {
+  resize: vertical;
+}
+
+.section-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-primary);
+}
+
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: var(--bg-subtle);
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
 }

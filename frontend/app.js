@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // DOM Element References
   const sampleSelect = document.getElementById('sample-select');
   const claimsQueueList = document.getElementById('claims-queue-list');
+  const queueCountBadge = document.getElementById('queue-count-badge');
   const btnLoadSample = document.getElementById('btn-load-sample');
   const btnRunReview = document.getElementById('btn-run-review');
   const payloadJson = document.getElementById('payload-json');
@@ -32,13 +33,191 @@ document.addEventListener('DOMContentLoaded', () => {
   const summaryText = document.getElementById('reasoning-summary-text');
   const badgeContraCount = document.getElementById('badge-contradiction-count');
 
+  // Input & Modal References
+  const btnOpenCreateModal = document.getElementById('btn-open-create-modal');
+  const btnCloseModal = document.getElementById('btn-close-modal');
+  const btnCancelModal = document.getElementById('btn-cancel-modal');
+  const customClaimModal = document.getElementById('custom-claim-modal');
+  const btnSubmitModal = document.getElementById('btn-submit-modal');
+  const createClaimForm = document.getElementById('create-claim-form');
+
+  const btnTriggerUpload = document.getElementById('btn-trigger-upload');
+  const fileInputClaim = document.getElementById('file-input-claim');
+
   let loadedClaimsData = [];
+  let customClaimsQueue = [];
 
   // Toggle Payload Drawer
   if (btnTogglePayload) {
     btnTogglePayload.addEventListener('click', () => {
       payloadContainer.classList.toggle('hidden');
       payloadToggleIcon.textContent = payloadContainer.classList.contains('hidden') ? '▼' : '▲';
+    });
+  }
+
+  // Modal Handlers
+  if (btnOpenCreateModal) {
+    btnOpenCreateModal.addEventListener('click', () => {
+      customClaimModal.classList.remove('hidden');
+    });
+  }
+
+  function closeModal() {
+    customClaimModal.classList.add('hidden');
+  }
+
+  if (btnCloseModal) btnCloseModal.addEventListener('click', closeModal);
+  if (btnCancelModal) btnCancelModal.addEventListener('click', closeModal);
+
+  // File Upload Handler
+  if (btnTriggerUpload && fileInputClaim) {
+    btnTriggerUpload.addEventListener('click', () => fileInputClaim.click());
+
+    fileInputClaim.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          
+          // Basic payload structure check
+          if (!parsed.claim_id) {
+            alert("Uploaded JSON missing required field 'claim_id'.");
+            return;
+          }
+
+          const filenameKey = `uploaded_${Date.now()}`;
+          const customClaimObj = {
+            filename: filenameKey,
+            claim_id: parsed.claim_id,
+            case_name: parsed.case_name || "Uploaded Custom Claim",
+            data: parsed
+          };
+
+          customClaimsQueue.unshift(customClaimObj);
+          updateFullQueueView();
+          setActiveCustomClaim(customClaimObj);
+          fileInputClaim.value = '';
+
+        } catch (err) {
+          alert("Failed to parse uploaded JSON file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  // Custom Claim Form Submission
+  if (btnSubmitModal) {
+    btnSubmitModal.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      const claimId = document.getElementById('form-claim-id').value.trim() || `CLM-CUSTOM-${Date.now()}`;
+      const caseName = document.getElementById('form-case-name').value.trim() || 'Custom Claim';
+      const claimType = document.getElementById('form-claim-type').value;
+      const vehicleType = document.getElementById('form-vehicle-type').value;
+      const vehicleModel = document.getElementById('form-vehicle-model').value.trim();
+      const regNumber = document.getElementById('form-reg-number').value.trim();
+      const idv = parseFloat(document.getElementById('form-idv').value) || 500000;
+      const claimedAmount = parseFloat(document.getElementById('form-claimed-amount').value) || 50000;
+      const incidentDate = document.getElementById('form-incident-date').value;
+      const reportDate = document.getElementById('form-report-date').value;
+      const location = document.getElementById('form-location').value.trim();
+      const description = document.getElementById('form-description').value.trim();
+
+      const docs = [];
+
+      if (document.getElementById('chk-doc-claimform').checked) {
+        docs.push({
+          doc_type: "Claim Form",
+          doc_id: "CF-001",
+          fields: {
+            claimant_name: "Insured Policyholder",
+            vehicle_registration: regNumber,
+            incident_date: incidentDate,
+            report_date: reportDate,
+            incident_location: location,
+            incident_cause: description.substring(0, 50),
+            claimed_amount: claimedAmount
+          }
+        });
+      }
+
+      if (document.getElementById('chk-doc-estimate').checked) {
+        docs.push({
+          doc_type: "Repair Estimate",
+          doc_id: "EST-001",
+          fields: {
+            repairer_name: "Authorized Workshop",
+            estimate_date: reportDate,
+            repair_estimate_amount: claimedAmount,
+            repaired_parts_summary: "Front bumper replacement & body alignment"
+          }
+        });
+      }
+
+      if (document.getElementById('chk-doc-fir').checked) {
+        docs.push({
+          doc_type: "FIR Report",
+          doc_id: "FIR-001",
+          fields: {
+            fir_number: `FIR-${Math.floor(Math.random()*1000)}`,
+            fir_date: reportDate,
+            police_station: "Central City Station",
+            incident_type: claimType
+          }
+        });
+      }
+
+      const generatedPayload = {
+        claim_id: claimId,
+        case_name: caseName,
+        claim_type: claimType,
+        vehicle_type: vehicleType,
+        vehicle_model: vehicleModel,
+        registration_number: regNumber,
+        insured_declared_value: idv,
+        incident_date: incidentDate,
+        report_date: reportDate,
+        incident_location: location,
+        claimed_amount: claimedAmount,
+        customer_description: description,
+        submitted_documents: docs
+      };
+
+      const filenameKey = `custom_${Date.now()}`;
+      const customClaimObj = {
+        filename: filenameKey,
+        claim_id: claimId,
+        case_name: caseName,
+        data: generatedPayload
+      };
+
+      customClaimsQueue.unshift(customClaimObj);
+      updateFullQueueView();
+      setActiveCustomClaim(customClaimObj);
+      closeModal();
+      
+      // Auto execute review
+      btnRunReview.click();
+    });
+  }
+
+  function setActiveCustomClaim(obj) {
+    payloadJson.value = JSON.stringify(obj.data, null, 2);
+    if (activeClaimId) activeClaimId.textContent = obj.claim_id;
+    if (activeClaimMeta) activeClaimMeta.textContent = `${obj.data.vehicle_model} (${obj.data.registration_number}) • Incident: ${obj.data.incident_date}`;
+    
+    // Highlight item
+    const allCards = document.querySelectorAll('.queue-card');
+    allCards.forEach(card => {
+      if (card.dataset.filename === obj.filename) {
+        card.classList.add('active');
+      } else {
+        card.classList.remove('active');
+      }
     });
   }
 
@@ -76,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
       apiStatusBadge.className = 'badge status-badge fallback';
     });
 
-  // Load Claims Queue
+  // Load Pre-Loaded Demo Claims Queue
   fetch('/api/claims')
     .then(res => res.json())
     .then(claims => {
@@ -91,26 +270,52 @@ document.addEventListener('DOMContentLoaded', () => {
         sampleSelect.appendChild(opt);
       });
 
-      // Render Visual Claims Queue Sidebar List
-      renderClaimsQueueList(claims);
+      updateFullQueueView();
 
-      // Auto Select First Claim
+      // Auto Select First Claim (CLM-2026-001)
       if (claims.length > 0) {
         selectClaimByFilename(claims[0].filename);
       }
     })
     .catch(err => console.error("Failed to fetch claims list:", err));
 
-  function renderClaimsQueueList(claims) {
+  function updateFullQueueView() {
     if (!claimsQueueList) return;
     claimsQueueList.innerHTML = '';
 
-    claims.forEach(c => {
+    const totalCount = loadedClaimsData.length + customClaimsQueue.length;
+    if (queueCountBadge) queueCountBadge.textContent = `${totalCount} Cases`;
+
+    // 1. Custom Claims First
+    customClaimsQueue.forEach(c => {
       const card = document.createElement('div');
       card.className = 'queue-card';
       card.dataset.filename = c.filename;
 
-      // Status badge calculation
+      card.innerHTML = `
+        <div class="queue-card-top">
+          <span class="claim-id-text">${c.claim_id}</span>
+          <span class="badge status-badge online">CUSTOM INPUT</span>
+        </div>
+        <div class="queue-card-title">${c.case_name}</div>
+        <div class="queue-card-meta">
+          <span>Source: Interactive Input</span>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        setActiveCustomClaim(c);
+      });
+
+      claimsQueueList.appendChild(card);
+    });
+
+    // 2. Pre-Loaded Demo Claims
+    loadedClaimsData.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'queue-card';
+      card.dataset.filename = c.filename;
+
       let statusBadgeClass = 'badge-secondary';
       let statusLabel = 'PENDING';
       if (c.case_name.includes('Approvable')) {
@@ -150,6 +355,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function selectClaimByFilename(filename) {
+    // Check if it's custom first
+    const customMatch = customClaimsQueue.find(c => c.filename === filename);
+    if (customMatch) {
+      setActiveCustomClaim(customMatch);
+      return;
+    }
+
     // Highlight sidebar item
     const allCards = document.querySelectorAll('.queue-card');
     allCards.forEach(card => {
@@ -170,10 +382,9 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(data => {
         payloadJson.value = JSON.stringify(data, null, 2);
         
-        // Update Toolbar Meta
-        const claimId = data.claim_form ? data.claim_form.claim_id : filename;
-        const vehicle = data.claim_form ? `${data.claim_form.vehicle_make_model || ''} (${data.claim_form.registration_number || ''})` : '';
-        const incidentDate = data.claim_form ? data.claim_form.incident_date : '';
+        const claimId = data.claim_id || filename;
+        const vehicle = `${data.vehicle_model || ''} (${data.registration_number || ''})`;
+        const incidentDate = data.incident_date || '';
         
         if (activeClaimId) activeClaimId.textContent = claimId;
         if (activeClaimMeta) activeClaimMeta.textContent = `${vehicle} • Incident: ${incidentDate}`;
@@ -181,7 +392,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch(err => alert("Error loading claim payload: " + err));
   }
 
-  // Event Listeners for Load & Select
   if (btnLoadSample) {
     btnLoadSample.addEventListener('click', () => {
       if (sampleSelect.value) {
@@ -263,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // AI Reasoning Executive Summary
     summaryText.textContent = res.ai_reasoning_summary;
 
-    // Contradictions Rendering (Side-by-Side Comparison Layout)
+    // Contradictions Rendering
     const contraList = document.getElementById('contradictions-list');
     badgeContraCount.textContent = res.contradictions ? res.contradictions.length : 0;
     contraList.innerHTML = '';

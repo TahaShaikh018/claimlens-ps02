@@ -42,14 +42,35 @@
     <!-- Main Workstation Layout (3-Column Grid) -->
     <div class="workstation-body">
 
-      <!-- LEFT COLUMN: Claims Queue & Payload Control (Shadcn Sidebar Pattern) -->
+      <!-- LEFT COLUMN: Claims Queue & Input Controls -->
       <aside class="sidebar-panel">
         <div class="sidebar-header">
           <div class="sidebar-title-group">
             <h3>Claims Queue</h3>
-            <span class="badge badge-secondary">5 Cases</span>
+            <span id="queue-count-badge" class="badge badge-secondary">5 Cases</span>
           </div>
-          <p class="sidebar-desc">Select a motor claim to investigate evidence & policy rules.</p>
+          <p class="sidebar-desc">Select a claim or create/upload a custom evidence payload.</p>
+        </div>
+
+        <!-- Input Actions Toolbar -->
+        <div class="input-actions-bar">
+          <button id="btn-open-create-modal" class="btn btn-primary btn-sm btn-full">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Create Custom Claim</span>
+          </button>
+          
+          <button id="btn-trigger-upload" class="btn btn-outline btn-sm btn-full mt-6">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>Upload JSON File</span>
+          </button>
+          <input type="file" id="file-input-claim" accept=".json" class="hidden">
         </div>
 
         <!-- Hidden Native Select for App Compatibility -->
@@ -69,7 +90,7 @@
         <!-- Payload Editor Section (Collapsible Accordion/Sheet) -->
         <div class="payload-section">
           <button id="btn-toggle-payload" class="btn btn-outline btn-full flex-between">
-            <span>📝 Edit JSON Payload</span>
+            <span>📝 Edit Raw JSON Payload</span>
             <span id="payload-toggle-icon">▼</span>
           </button>
 
@@ -114,7 +135,7 @@
             </svg>
           </div>
           <h3>No Evidence Review Executed</h3>
-          <p>Select a claim from the queue on the left and click <strong>"Execute Evidence Review"</strong> to evaluate motor policy coverage, cross-document consistency, and deterministic rules.</p>
+          <p>Select a claim from the queue or click <strong>"Create Custom Claim"</strong> to evaluate motor policy coverage, cross-document consistency, and deterministic rules.</p>
         </div>
 
         <!-- Loading Spinner State -->
@@ -129,7 +150,7 @@
         <!-- Active Investigation Review Results -->
         <div id="review-content" class="review-content hidden">
 
-          <!-- Recommendation Overview Summary Bar (Shadcn Card / Metric Header) -->
+          <!-- Recommendation Overview Summary Bar -->
           <div id="recommendation-banner" class="summary-metric-bar">
             <div class="metric-item rec-item">
               <span class="metric-label">RECOMMENDED DISPOSITION</span>
@@ -157,7 +178,7 @@
             </div>
           </div>
 
-          <!-- Human Escalation Alert (Shadcn Alert Component) -->
+          <!-- Human Escalation Alert -->
           <div id="escalation-banner" class="alert alert-destructive hidden">
             <div class="alert-icon-col">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -172,7 +193,7 @@
             </div>
           </div>
 
-          <!-- Investigation Tabs (Shadcn Tabs Component Pattern) -->
+          <!-- Investigation Tabs -->
           <div class="tabs-wrapper">
             <div class="tabs-header">
               <button class="tab-btn active" data-tab="tab-contradictions">
@@ -225,7 +246,7 @@
       <!-- RIGHT COLUMN: Analytical Report & Investigator Action Panel -->
       <aside class="analyst-panel">
 
-        <!-- Executive Reasoning Card (Shadcn Card) -->
+        <!-- Executive Reasoning Card -->
         <div class="workstation-card">
           <div class="card-header">
             <div class="card-title-group">
@@ -243,7 +264,7 @@
           </div>
         </div>
 
-        <!-- Investigator Actions Card (Shadcn Card / Checklist) -->
+        <!-- Investigator Actions Card -->
         <div class="workstation-card">
           <div class="card-header">
             <div class="card-title-group">
@@ -282,6 +303,127 @@
 
       </aside>
 
+    </div>
+  </div>
+
+  <!-- INTERACTIVE CREATE CUSTOM CLAIM MODAL (Shadcn Dialog Pattern) -->
+  <div id="custom-claim-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>Create Custom Claim Evidence Package</h3>
+          <span class="badge badge-secondary">PS02 Interactive Input</span>
+        </div>
+        <button id="btn-close-modal" class="modal-close-btn">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="create-claim-form" class="modal-form-grid">
+          <!-- Row 1 -->
+          <div class="form-field">
+            <label for="form-claim-id">Claim ID / Reference *</label>
+            <input type="text" id="form-claim-id" class="form-control" value="CLM-2026-CUSTOM-01" required>
+          </div>
+
+          <div class="form-field">
+            <label for="form-case-name">Case Description Name *</label>
+            <input type="text" id="form-case-name" class="form-control" value="Custom Motor Accident Claim" required>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="form-field">
+            <label for="form-claim-type">Claim Coverage Type *</label>
+            <select id="form-claim-type" class="form-control">
+              <option value="Accidental Damage">Accidental Damage</option>
+              <option value="Vehicle Theft">Vehicle Theft</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="form-vehicle-type">Vehicle Category *</label>
+            <select id="form-vehicle-type" class="form-control">
+              <option value="Car">Car</option>
+              <option value="Two-Wheeler">Two-Wheeler</option>
+            </select>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="form-field">
+            <label for="form-vehicle-model">Vehicle Make / Model *</label>
+            <input type="text" id="form-vehicle-model" class="form-control" value="Hyundai Creta" required>
+          </div>
+
+          <div class="form-field">
+            <label for="form-reg-number">Registration Number *</label>
+            <input type="text" id="form-reg-number" class="form-control" value="MH-12-PQ-9988" required>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="form-field">
+            <label for="form-idv">Insured Declared Value (IDV ₹) *</label>
+            <input type="number" id="form-idv" class="form-control" value="850000" required>
+          </div>
+
+          <div class="form-field">
+            <label for="form-claimed-amount">Claimed Repair Amount (₹) *</label>
+            <input type="number" id="form-claimed-amount" class="form-control" value="65000" required>
+          </div>
+
+          <!-- Row 5 -->
+          <div class="form-field">
+            <label for="form-incident-date">Incident Date (YYYY-MM-DD) *</label>
+            <input type="date" id="form-incident-date" class="form-control" value="2026-08-10" required>
+          </div>
+
+          <div class="form-field">
+            <label for="form-report-date">Report Date (YYYY-MM-DD) *</label>
+            <input type="date" id="form-report-date" class="form-control" value="2026-08-12" required>
+          </div>
+
+          <!-- Full Width Row 6 -->
+          <div class="form-field full-width">
+            <label for="form-location">Incident Location *</label>
+            <input type="text" id="form-location" class="form-control" value="Western Express Highway, Mumbai" required>
+          </div>
+
+          <!-- Full Width Row 7 -->
+          <div class="form-field full-width">
+            <label for="form-description">Customer Incident Narrative / Description *</label>
+            <textarea id="form-description" class="form-control form-textarea" rows="3" required>Vehicle skidded on rain-slicked road and impacted the side median divider, causing front bumper and radiator damage.</textarea>
+          </div>
+
+          <!-- Submitted Documents Checkbox Section -->
+          <div class="form-field full-width">
+            <label class="section-label">Submitted Evidence Documents (Check to Include):</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" id="chk-doc-claimform" checked>
+                <span>Claim Form (Includes Incident Date & Description)</span>
+              </label>
+
+              <label class="checkbox-item">
+                <input type="checkbox" id="chk-doc-estimate" checked>
+                <span>Repair Estimate (Repairer Itemized Bill)</span>
+              </label>
+
+              <label class="checkbox-item">
+                <input type="checkbox" id="chk-doc-fir">
+                <span>FIR / Police Report (Required for Theft or Serious Accident)</span>
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-cancel-modal" class="btn btn-secondary">Cancel</button>
+        <button id="btn-submit-modal" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span>Generate Payload & Review Claim</span>
+        </button>
+      </div>
     </div>
   </div>
 
