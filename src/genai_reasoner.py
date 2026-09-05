@@ -99,79 +99,88 @@ class GenAIReasoner:
                 contradictions, retrieved_clauses, reason="GEMINI_API_KEY environment variable is not set."
             )
 
-        try:
-            import google.generativeai as genai
-            genai.configure(api_key=self.api_key)
-            
-            # Try available models: gemini-1.5-flash, gemini-2.5-flash, gemini-1.5-pro
-            model = genai.GenerativeModel(
-                model_name=self.model_name,
-                system_instruction=SYSTEM_PROMPT,
-                generation_config={"response_mime_type": "application/json"}
-            )
-            
-            response = model.generate_content(user_prompt)
-            raw_text = response.text.strip()
-            
-            # Extract JSON if enclosed in markdown backticks
-            match = re.search(r"\{.*\}", raw_text, re.DOTALL)
-            if match:
-                raw_text = match.group(0)
+        # Candidate model fallbacks
+        candidate_models = [self.model_name, "gemini-3.6-flash", "gemini-2.5-flash", "gemini-1.5-flash"]
+        last_exception = None
+
+        for m_name in candidate_models:
+            if not m_name:
+                continue
+            try:
+                import google.generativeai as genai
+                genai.configure(api_key=self.api_key)
                 
-            parsed = json.loads(raw_text)
-            
-            # Parse applicable policy citations
-            citations = []
-            for cl in retrieved_clauses:
-                cid = cl.get("clause_id", "")
-                citations.append(PolicyCitation(
-                    clause_id=cid,
-                    title=cl.get("title", ""),
-                    category=cl.get("category", ""),
-                    text=cl.get("text", ""),
-                    applicability_reason=f"Retrieved policy clause applicable to {claim.claim_type}.",
-                    supports_claim=not any(chk.policy_clause_id == cid and not chk.passed for chk in deterministic_checks)
-                ))
+                model = genai.GenerativeModel(
+                    model_name=m_name,
+                    system_instruction=SYSTEM_PROMPT,
+                    generation_config={"response_mime_type": "application/json"}
+                )
                 
-            # Parse findings
-            findings = []
-            raw_findings = parsed.get("evidence_findings", [])
-            for idx, rf in enumerate(raw_findings):
-                if isinstance(rf, dict):
-                    findings.append(EvidenceFinding(
-                        finding_id=rf.get("finding_id", f"FINDING-{idx+1}"),
-                        summary=rf.get("summary", "Finding summary"),
-                        evidence_source=rf.get("evidence_source", "Claim Documents"),
-                        policy_clause=rf.get("policy_clause", "POLICY-01"),
-                        reasoning=rf.get("reasoning", "Evidence evaluation"),
-                        finding_type=rf.get("finding_type", "COMPLIANCE")
+                response = model.generate_content(user_prompt)
+                raw_text = response.text.strip()
+                
+                # Extract JSON if enclosed in markdown backticks
+                match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+                if match:
+                    raw_text = match.group(0)
+                    
+                parsed = json.loads(raw_text)
+                
+                # Parse applicable policy citations
+                citations = []
+                for cl in retrieved_clauses:
+                    cid = cl.get("clause_id", "")
+                    citations.append(PolicyCitation(
+                        clause_id=cid,
+                        title=cl.get("title", ""),
+                        category=cl.get("category", ""),
+                        text=cl.get("text", ""),
+                        applicability_reason=f"Retrieved policy clause applicable to {claim.claim_type}.",
+                        supports_claim=not any(chk.policy_clause_id == cid and not chk.passed for chk in deterministic_checks)
                     ))
                     
-            return ClaimReviewResponse(
-                claim_id=claim.claim_id,
-                case_name=claim.case_name,
-                overall_recommendation=parsed.get("overall_recommendation", "REQUEST INFORMATION"),
-                human_escalation_required=bool(parsed.get("human_escalation_required", False)),
-                escalation_reason=parsed.get("escalation_reason"),
-                confidence_level=parsed.get("confidence_level", "HIGH"),
-                completeness_status=parsed.get("completeness_status", "INCOMPLETE" if missing_docs else "COMPLETE"),
-                consistency_status=parsed.get("consistency_status", "CONTRADICTORY" if contradictions else "CONSISTENT"),
-                missing_documents=missing_docs,
-                deterministic_checks=deterministic_checks,
-                contradictions=contradictions,
-                applicable_policy_clauses=citations,
-                evidence_findings=findings,
-                investigator_next_steps=parsed.get("investigator_next_steps", ["Review claim details."]),
-                unknowns_and_ambiguities=parsed.get("unknowns_and_ambiguities", []),
-                ai_reasoning_summary=parsed.get("ai_reasoning_summary", "Gemini synthesis complete."),
-                ai_mode="GEMINI_POWERED"
-            )
-            
-        except Exception as e:
-            return self._fallback_synthesis(
-                claim, deterministic_checks, missing_docs, deductible_info,
-                contradictions, retrieved_clauses, reason=f"Gemini API call failed: {str(e)}"
-            )
+                # Parse findings
+                findings = []
+                raw_findings = parsed.get("evidence_findings", [])
+                for idx, rf in enumerate(raw_findings):
+                    if isinstance(rf, dict):
+                        findings.append(EvidenceFinding(
+                            finding_id=rf.get("finding_id", f"FINDING-{idx+1}"),
+                            summary=rf.get("summary", "Finding summary"),
+                            evidence_source=rf.get("evidence_source", "Claim Documents"),
+                            policy_clause=rf.get("policy_clause", "POLICY-01"),
+                            reasoning=rf.get("reasoning", "Evidence evaluation"),
+                            finding_type=rf.get("finding_type", "COMPLIANCE")
+                        ))
+                        
+                return ClaimReviewResponse(
+                    claim_id=claim.claim_id,
+                    case_name=claim.case_name,
+                    overall_recommendation=parsed.get("overall_recommendation", "REQUEST INFORMATION"),
+                    human_escalation_required=bool(parsed.get("human_escalation_required", False)),
+                    escalation_reason=parsed.get("escalation_reason"),
+                    confidence_level=parsed.get("confidence_level", "HIGH"),
+                    completeness_status=parsed.get("completeness_status", "INCOMPLETE" if missing_docs else "COMPLETE"),
+                    consistency_status=parsed.get("consistency_status", "CONTRADICTORY" if contradictions else "CONSISTENT"),
+                    missing_documents=missing_docs,
+                    deterministic_checks=deterministic_checks,
+                    contradictions=contradictions,
+                    applicable_policy_clauses=citations,
+                    evidence_findings=findings,
+                    investigator_next_steps=parsed.get("investigator_next_steps", ["Review claim details."]),
+                    unknowns_and_ambiguities=parsed.get("unknowns_and_ambiguities", []),
+                    ai_reasoning_summary=parsed.get("ai_reasoning_summary", "Gemini synthesis complete."),
+                    ai_mode="GEMINI_POWERED"
+                )
+            except Exception as e:
+                last_exception = e
+                continue
+
+        # If all candidates failed, fallback
+        return self._fallback_synthesis(
+            claim, deterministic_checks, missing_docs, deductible_info,
+            contradictions, retrieved_clauses, reason=f"Gemini API call failed across candidate models: {str(last_exception)}"
+        )
 
     def _fallback_synthesis(
         self,
@@ -231,7 +240,7 @@ class GenAIReasoner:
             escalate = False
             esc_reason = None
             conf = "HIGH"
-            summary = f"All required documents submitted, dates consistent, claim within reporting window, and incident covered under POLICY-02. Net estimated payout: ₹{deductible_info.get('estimated_net_payout', claim.claimed_amount):,.2f}."
+            summary = f"All required documents submitted, dates consistent, claim within reporting window, and incident covered under POLICY-02. Net estimated payout calculated after excess."
 
         citations = [
             PolicyCitation(
