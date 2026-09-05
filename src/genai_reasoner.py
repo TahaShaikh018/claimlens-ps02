@@ -1,5 +1,6 @@
 import json
 import re
+import time
 from typing import Dict, Any, List
 from src.config import config
 from src.schemas import (
@@ -12,7 +13,8 @@ class GenAIReasoner:
     """
     Gemini GenAI Reasoning Engine.
     Executes grounded reasoning over claim evidence, retrieved policy clauses,
-    and deterministic rule results. Includes strict JSON schema validation and graceful fallback.
+    and deterministic rule results. Includes strict JSON schema validation, candidate model fallbacks,
+    and explicit error reporting.
     """
     
     def __init__(self):
@@ -99,13 +101,17 @@ class GenAIReasoner:
                 contradictions, retrieved_clauses, reason="GEMINI_API_KEY environment variable is not set."
             )
 
-        # Candidate model fallbacks
-        candidate_models = [self.model_name, "gemini-3.6-flash", "gemini-2.5-flash", "gemini-1.5-flash"]
+        # Active candidate models in preferred order
+        candidate_models = [self.model_name, "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.1-flash-lite"]
+        # Remove duplicates while preserving order
+        unique_models = []
+        for m in candidate_models:
+            if m and m not in unique_models:
+                unique_models.append(m)
+
         last_exception = None
 
-        for m_name in candidate_models:
-            if not m_name:
-                continue
+        for m_name in unique_models:
             try:
                 import google.generativeai as genai
                 genai.configure(api_key=self.api_key)
@@ -139,18 +145,24 @@ class GenAIReasoner:
                         supports_claim=not any(chk.policy_clause_id == cid and not chk.passed for chk in deterministic_checks)
                     ))
                     
-                # Parse findings
+                # Parse findings with flexible key aliases
                 findings = []
                 raw_findings = parsed.get("evidence_findings", [])
                 for idx, rf in enumerate(raw_findings):
                     if isinstance(rf, dict):
+                        f_summary = rf.get("summary") or rf.get("finding") or rf.get("title") or rf.get("description") or f"Finding {idx+1}"
+                        f_source = rf.get("evidence_source") or rf.get("source") or rf.get("evidence") or "Claim Documents"
+                        f_clause = rf.get("policy_clause") or rf.get("clause") or rf.get("policy_clause_id") or "POLICY-01"
+                        f_reason = rf.get("reasoning") or rf.get("explanation") or rf.get("details") or rf.get("reason") or "Evidence evaluation"
+                        f_type = rf.get("finding_type") or rf.get("type") or "COMPLIANCE"
+                        
                         findings.append(EvidenceFinding(
                             finding_id=rf.get("finding_id", f"FINDING-{idx+1}"),
-                            summary=rf.get("summary", "Finding summary"),
-                            evidence_source=rf.get("evidence_source", "Claim Documents"),
-                            policy_clause=rf.get("policy_clause", "POLICY-01"),
-                            reasoning=rf.get("reasoning", "Evidence evaluation"),
-                            finding_type=rf.get("finding_type", "COMPLIANCE")
+                            summary=str(f_summary),
+                            evidence_source=str(f_source),
+                            policy_clause=str(f_clause),
+                            reasoning=str(f_reason),
+                            finding_type=str(f_type)
                         ))
                         
                 return ClaimReviewResponse(
@@ -174,12 +186,24 @@ class GenAIReasoner:
                 )
             except Exception as e:
                 last_exception = e
+                # If 429 quota error, brief sleep before fallback
+                err_str = str(e).lower()
+                if "429" in err_str or "quota" in err_str:
+                    time.sleep(1)
                 continue
 
-        # If all candidates failed, fallback
+        # If all model candidates failed, return explicit fallback response detailing the error
+        err_msg = str(last_exception)
+        if "429" in err_msg or "quota" in err_msg:
+            reason_str = "Gemini API Quota Exceeded (429 Rate Limit)"
+        elif "404" in err_msg:
+            reason_str = "Gemini Model Not Found (404)"
+        else:
+            reason_str = f"Gemini Error: {err_msg[:80]}"
+
         return self._fallback_synthesis(
             claim, deterministic_checks, missing_docs, deductible_info,
-            contradictions, retrieved_clauses, reason=f"Gemini API call failed across candidate models: {str(last_exception)}"
+            contradictions, retrieved_clauses, reason=reason_str
         )
 
     def _fallback_synthesis(
@@ -306,6 +330,6 @@ class GenAIReasoner:
             evidence_findings=findings,
             investigator_next_steps=next_steps,
             unknowns_and_ambiguities=[c.impact_explanation for c in contradictions],
-            ai_reasoning_summary=f"{summary} [Note: Evaluated via Deterministic Engine ({reason})]",
-            ai_mode="DETERMINISTIC_FALLBACK"
+            ai_reasoning_summary=f"{summary} [Note: Fallback to Deterministic Engine ({reason})]",
+            ai_mode=f"DETERMINISTIC_FALLBACK ({reason})"
         )
