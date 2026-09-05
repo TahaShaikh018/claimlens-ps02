@@ -1,13 +1,21 @@
-// ClaimLens Dashboard Dynamic JavaScript
+// ClaimLens Workstation Dynamic JavaScript (Shadcn/UI Architecture)
 
 document.addEventListener('DOMContentLoaded', () => {
-  // DOM Elements
+  // DOM Element References
   const sampleSelect = document.getElementById('sample-select');
+  const claimsQueueList = document.getElementById('claims-queue-list');
   const btnLoadSample = document.getElementById('btn-load-sample');
   const btnRunReview = document.getElementById('btn-run-review');
   const payloadJson = document.getElementById('payload-json');
   const apiStatusBadge = document.getElementById('api-status-badge');
   
+  const btnTogglePayload = document.getElementById('btn-toggle-payload');
+  const payloadContainer = document.getElementById('payload-container');
+  const payloadToggleIcon = document.getElementById('payload-toggle-icon');
+
+  const activeClaimId = document.getElementById('active-claim-id');
+  const activeClaimMeta = document.getElementById('active-claim-meta');
+
   const emptyState = document.getElementById('empty-state');
   const loadingState = document.getElementById('loading-state');
   const reviewContent = document.getElementById('review-content');
@@ -24,7 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const summaryText = document.getElementById('reasoning-summary-text');
   const badgeContraCount = document.getElementById('badge-contradiction-count');
 
-  // Tab Switching
+  let loadedClaimsData = [];
+
+  // Toggle Payload Drawer
+  if (btnTogglePayload) {
+    btnTogglePayload.addEventListener('click', () => {
+      payloadContainer.classList.toggle('hidden');
+      payloadToggleIcon.textContent = payloadContainer.classList.contains('hidden') ? '▼' : '▲';
+    });
+  }
+
+  // Tab Switching (Shadcn Tabs)
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
 
@@ -34,19 +52,22 @@ document.addEventListener('DOMContentLoaded', () => {
       tabContents.forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
       const targetId = btn.getAttribute('data-tab');
-      document.getElementById(targetId).classList.add('active');
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) {
+        targetEl.classList.add('active');
+      }
     });
   });
 
-  // Check API Health
+  // Check API Health Status
   fetch('/api/health')
     .then(res => res.json())
     .then(data => {
       if (data.gemini_api_key_configured) {
-        apiStatusBadge.textContent = 'Gemini API Configured';
+        apiStatusBadge.textContent = 'Gemini API Connected';
         apiStatusBadge.className = 'badge status-badge online';
       } else {
-        apiStatusBadge.textContent = 'Offline Engine (No Key Set)';
+        apiStatusBadge.textContent = 'Offline Engine (Fallback)';
         apiStatusBadge.className = 'badge status-badge fallback';
       }
     })
@@ -55,10 +76,13 @@ document.addEventListener('DOMContentLoaded', () => {
       apiStatusBadge.className = 'badge status-badge fallback';
     });
 
-  // Load List of Sample Claims
+  // Load Claims Queue
   fetch('/api/claims')
     .then(res => res.json())
     .then(claims => {
+      loadedClaimsData = claims;
+      
+      // Populate hidden select for backward compatibility
       sampleSelect.innerHTML = '<option value="">-- Choose Sample Case --</option>';
       claims.forEach(c => {
         const opt = document.createElement('option');
@@ -66,42 +90,117 @@ document.addEventListener('DOMContentLoaded', () => {
         opt.textContent = `${c.claim_id}: ${c.case_name}`;
         sampleSelect.appendChild(opt);
       });
-      // Auto select first sample
+
+      // Render Visual Claims Queue Sidebar List
+      renderClaimsQueueList(claims);
+
+      // Auto Select First Claim
       if (claims.length > 0) {
-        sampleSelect.selectedIndex = 1;
-        loadSampleClaim(claims[0].filename);
+        selectClaimByFilename(claims[0].filename);
       }
     })
     .catch(err => console.error("Failed to fetch claims list:", err));
 
-  // Event: Load Sample Claim Button
-  btnLoadSample.addEventListener('click', () => {
-    const selected = sampleSelect.value;
-    if (selected) {
-      loadSampleClaim(selected);
-    }
-  });
+  function renderClaimsQueueList(claims) {
+    if (!claimsQueueList) return;
+    claimsQueueList.innerHTML = '';
 
-  sampleSelect.addEventListener('change', () => {
-    if (sampleSelect.value) {
-      loadSampleClaim(sampleSelect.value);
-    }
-  });
+    claims.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'queue-card';
+      card.dataset.filename = c.filename;
+
+      // Status badge calculation
+      let statusBadgeClass = 'badge-secondary';
+      let statusLabel = 'PENDING';
+      if (c.case_name.includes('Approvable')) {
+        statusBadgeClass = 'status-badge online';
+        statusLabel = 'APPROVABLE';
+      } else if (c.case_name.includes('Contradiction')) {
+        statusBadgeClass = 'badge-danger';
+        statusLabel = 'CONTRADICTION';
+      } else if (c.case_name.includes('Missing')) {
+        statusBadgeClass = 'status-badge fallback';
+        statusLabel = 'MISSING DOC';
+      } else if (c.case_name.includes('Exclusion')) {
+        statusBadgeClass = 'badge-danger';
+        statusLabel = 'EXCLUSION';
+      } else if (c.case_name.includes('Uncertain')) {
+        statusBadgeClass = 'status-badge fallback';
+        statusLabel = 'UNCERTAIN';
+      }
+
+      card.innerHTML = `
+        <div class="queue-card-top">
+          <span class="claim-id-text">${c.claim_id}</span>
+          <span class="badge ${statusBadgeClass}">${statusLabel}</span>
+        </div>
+        <div class="queue-card-title">${c.case_name}</div>
+        <div class="queue-card-meta">
+          <span>File: ${c.filename}</span>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        selectClaimByFilename(c.filename);
+      });
+
+      claimsQueueList.appendChild(card);
+    });
+  }
+
+  function selectClaimByFilename(filename) {
+    // Highlight sidebar item
+    const allCards = document.querySelectorAll('.queue-card');
+    allCards.forEach(card => {
+      if (card.dataset.filename === filename) {
+        card.classList.add('active');
+      } else {
+        card.classList.remove('active');
+      }
+    });
+
+    sampleSelect.value = filename;
+    loadSampleClaim(filename);
+  }
 
   function loadSampleClaim(filename) {
     fetch(`/api/claims/${filename}`)
       .then(res => res.json())
       .then(data => {
         payloadJson.value = JSON.stringify(data, null, 2);
+        
+        // Update Toolbar Meta
+        const claimId = data.claim_form ? data.claim_form.claim_id : filename;
+        const vehicle = data.claim_form ? `${data.claim_form.vehicle_make_model || ''} (${data.claim_form.registration_number || ''})` : '';
+        const incidentDate = data.claim_form ? data.claim_form.incident_date : '';
+        
+        if (activeClaimId) activeClaimId.textContent = claimId;
+        if (activeClaimMeta) activeClaimMeta.textContent = `${vehicle} • Incident: ${incidentDate}`;
       })
-      .catch(err => alert("Error loading claim: " + err));
+      .catch(err => alert("Error loading claim payload: " + err));
   }
 
-  // Event: Run Evidence Review Button
+  // Event Listeners for Load & Select
+  if (btnLoadSample) {
+    btnLoadSample.addEventListener('click', () => {
+      if (sampleSelect.value) {
+        loadSampleClaim(sampleSelect.value);
+      }
+    });
+  }
+
+  sampleSelect.addEventListener('change', () => {
+    if (sampleSelect.value) {
+      selectClaimByFilename(sampleSelect.value);
+    }
+  });
+
+  // Event Listener: Run Review Button
   btnRunReview.addEventListener('click', () => {
     const rawJson = payloadJson.value.trim();
     if (!rawJson) {
-      alert("Please paste or select a claim JSON payload first.");
+      alert("Please select a claim from the queue or enter JSON payload first.");
       return;
     }
 
@@ -109,11 +208,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       payloadObj = JSON.parse(rawJson);
     } catch (e) {
-      alert("Invalid JSON format in claim payload editor: " + e.message);
+      alert("Invalid JSON format in claim payload: " + e.message);
       return;
     }
 
-    // Show Loading
+    // Show Loading State
     emptyState.classList.add('hidden');
     reviewContent.classList.add('hidden');
     loadingState.classList.remove('hidden');
@@ -136,16 +235,16 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch(err => {
         loadingState.classList.add('hidden');
         emptyState.classList.remove('hidden');
-        alert("Review failed: " + err.message);
+        alert("Review execution failed: " + err.message);
       });
   });
 
   function renderReviewResults(res) {
     reviewContent.classList.remove('hidden');
 
-    // Recommendation Banner
+    // Recommendation Banner Metrics
     recText.textContent = res.overall_recommendation;
-    recText.className = `recommendation-badge ${res.overall_recommendation}`;
+    recText.className = `recommendation-badge ${res.overall_recommendation.replace(/\s+/g, '_')}`;
 
     completenessPill.textContent = res.completeness_status;
     consistencyPill.textContent = res.consistency_status;
@@ -153,43 +252,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
     aiModePill.textContent = res.ai_mode === 'GEMINI_POWERED' ? '✨ Gemini GenAI Powered' : '⚙️ Deterministic Engine';
 
-    // Escalation Banner
+    // Escalation Banner Alert
     if (res.human_escalation_required) {
       escBanner.classList.remove('hidden');
-      escReasonText.textContent = res.escalation_reason || "Evidence requires human review.";
+      escReasonText.textContent = res.escalation_reason || "Evidence requires human investigator verification.";
     } else {
       escBanner.classList.add('hidden');
     }
 
-    // Executive Summary
+    // AI Reasoning Executive Summary
     summaryText.textContent = res.ai_reasoning_summary;
 
-    // Contradictions
+    // Contradictions Rendering (Side-by-Side Comparison Layout)
     const contraList = document.getElementById('contradictions-list');
     badgeContraCount.textContent = res.contradictions ? res.contradictions.length : 0;
     contraList.innerHTML = '';
 
     if (!res.contradictions || res.contradictions.length === 0) {
       contraList.innerHTML = `
-        <div class="item-card success">
-          <div class="item-title">✓ No Document Contradictions Detected</div>
-          <div class="item-detail">All submitted claim documents show consistent field values.</div>
+        <div class="no-contradictions-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>No Document Contradictions Detected — All submitted claim facts match consistently across sources.</span>
         </div>
       `;
     } else {
       res.contradictions.forEach(c => {
         contraList.innerHTML += `
-          <div class="item-card danger">
-            <div class="item-header">
-              <div class="item-title">⚠️ Field Discrepancy: ${c.field_name}</div>
-              <span class="item-badge" style="background: rgba(239,68,68,0.2); color:#ef4444;">CONTRADICTION</span>
+          <div class="contradiction-card">
+            <div class="contradiction-card-header">
+              <span class="field-badge">DISCREPANCY FIELD: ${c.field_name}</span>
+              <span class="badge badge-danger">CONTRADICTION DETECTED</span>
             </div>
-            <div class="item-grid">
-              <div><strong>Value A:</strong> ${c.value_a}<br><small style="color:#9ca3af;">(${c.source_a})</small></div>
-              <div><strong>Value B:</strong> ${c.value_b}<br><small style="color:#9ca3af;">(${c.source_b})</small></div>
+
+            <div class="comparison-grid">
+              <div class="comparison-col">
+                <span class="source-tag">Source A (${c.source_a})</span>
+                <div class="value-box">${c.value_a}</div>
+              </div>
+              <div class="vs-badge">VS</div>
+              <div class="comparison-col">
+                <span class="source-tag">Source B (${c.source_b})</span>
+                <div class="value-box">${c.value_b}</div>
+              </div>
             </div>
-            <div class="item-detail"><strong>Impact:</strong> ${c.impact_explanation}</div>
-            <div class="item-detail"><strong>Recommendation:</strong> ${c.recommended_action}</div>
+
+            <div class="impact-box">
+              <strong>Impact Explanation:</strong> ${c.impact_explanation}
+            </div>
+
+            <div class="recommended-action-box">
+              <strong>Recommended Action:</strong> ${c.recommended_action}
+            </div>
           </div>
         `;
       });
@@ -201,15 +316,13 @@ document.addEventListener('DOMContentLoaded', () => {
     res.deterministic_checks.forEach(chk => {
       const isPass = chk.passed;
       detList.innerHTML += `
-        <div class="item-card ${isPass ? 'success' : 'danger'}">
-          <div class="item-header">
-            <div class="item-title">${isPass ? '✓' : '✗'} ${chk.check_name}</div>
-            <span class="item-badge" style="background:${isPass ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color:${isPass ? '#10b981' : '#ef4444'};">
-              ${chk.policy_clause_id}
-            </span>
+        <div class="data-card" style="border-left: 4px solid ${isPass ? 'var(--status-approve)' : 'var(--status-reject)'};">
+          <div class="data-card-header">
+            <span class="data-title">${isPass ? '✓' : '✗'} ${chk.check_name}</span>
+            <span class="clause-tag">${chk.policy_clause_id}</span>
           </div>
-          <div class="item-detail">${chk.details}</div>
-          <div class="item-detail" style="font-size:11.5px; color:#6b7280;">Sources: ${chk.source_fields.join(', ')}</div>
+          <div style="font-size:13px; color:var(--text-secondary);">${chk.details}</div>
+          <div style="font-size:11.5px; color:var(--text-muted);">Evidence Sources: ${chk.source_fields.join(', ')}</div>
         </div>
       `;
     });
@@ -219,13 +332,13 @@ document.addEventListener('DOMContentLoaded', () => {
     clausesList.innerHTML = '';
     res.applicable_policy_clauses.forEach(cl => {
       clausesList.innerHTML += `
-        <div class="item-card">
-          <div class="item-header">
-            <div class="item-title">[${cl.clause_id}] ${cl.title}</div>
-            <span class="item-badge" style="background:rgba(59,130,246,0.2); color:#60a5fa;">${cl.category}</span>
+        <div class="data-card">
+          <div class="data-card-header">
+            <span class="data-title">[${cl.clause_id}] ${cl.title}</span>
+            <span class="badge badge-secondary">${cl.category}</span>
           </div>
-          <div class="item-detail" style="font-style:italic;">"${cl.text}"</div>
-          <div class="item-detail"><strong>Relevance:</strong> ${cl.applicability_reason}</div>
+          <div class="clause-quote">"${cl.text}"</div>
+          <div style="font-size:12.5px; color:var(--text-secondary);"><strong>Applicability Grounding:</strong> ${cl.applicability_reason}</div>
         </div>
       `;
     });
@@ -235,19 +348,19 @@ document.addEventListener('DOMContentLoaded', () => {
     findingsList.innerHTML = '';
     res.evidence_findings.forEach(f => {
       findingsList.innerHTML += `
-        <div class="item-card">
-          <div class="item-header">
-            <div class="item-title">${f.summary}</div>
-            <span class="item-badge" style="background:rgba(255,255,255,0.1); color:#d1d5db;">${f.finding_type}</span>
+        <div class="data-card">
+          <div class="data-card-header">
+            <span class="data-title">${f.summary}</span>
+            <span class="badge badge-secondary">${f.finding_type}</span>
           </div>
-          <div class="item-detail"><strong>Evidence Source:</strong> ${f.evidence_source}</div>
-          <div class="item-detail"><strong>Policy Basis:</strong> ${f.policy_clause}</div>
-          <div class="item-detail"><strong>Reasoning:</strong> ${f.reasoning}</div>
+          <div style="font-size:12.5px; color:var(--text-secondary);"><strong>Evidence Source:</strong> ${f.evidence_source}</div>
+          <div style="font-size:12.5px; color:var(--text-secondary);"><strong>Policy Basis:</strong> ${f.policy_clause}</div>
+          <div style="font-size:12.5px; color:var(--text-muted);">${f.reasoning}</div>
         </div>
       `;
     });
 
-    // Investigator Next Steps
+    // Investigator Action Plan
     const stepsList = document.getElementById('next-steps-list');
     stepsList.innerHTML = '';
     res.investigator_next_steps.forEach(step => {
@@ -258,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const unknownsList = document.getElementById('unknowns-list');
     unknownsList.innerHTML = '';
     if (!res.unknowns_and_ambiguities || res.unknowns_and_ambiguities.length === 0) {
-      unknownsList.innerHTML = `<li>No critical ambiguities identified.</li>`;
+      unknownsList.innerHTML = `<li class="empty-list-text">No critical ambiguities identified.</li>`;
     } else {
       res.unknowns_and_ambiguities.forEach(unk => {
         unknownsList.innerHTML += `<li>${unk}</li>`;

@@ -3,159 +3,286 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClaimLens — Motor Insurance Claims Evidence Review Assistant (PS02)</title>
+  <title>ClaimLens — Motor Insurance Claims Investigation Workstation (PS02)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
-  <div class="app-container">
-    <!-- Header Navbar -->
-    <header class="navbar">
-      <div class="logo-group">
-        <div class="logo-icon">🔍</div>
-        <div>
-          <h1 class="logo-title">ClaimLens</h1>
-          <span class="logo-subtitle">Motor Insurance Claims Evidence Review Assistant</span>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased">
+  <div class="app-shell">
+
+    <!-- Top Navigation Header (Shadcn Navbar Pattern) -->
+    <header class="navbar-header">
+      <div class="nav-brand">
+        <div class="brand-logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">ClaimLens</span>
+          <span class="brand-divider">/</span>
+          <span class="brand-subtitle">Motor Claims Evidence Review Workstation</span>
         </div>
       </div>
-      <div class="badge-group">
-        <span class="badge track-badge">TRACK ID: PS02</span>
-        <span id="api-status-badge" class="badge status-badge loading">Checking API...</span>
+
+      <div class="nav-actions">
+        <div class="system-meta">
+          <span class="meta-tag track-tag">Track ID: PS02</span>
+          <span id="api-status-badge" class="badge status-badge loading">Checking Backend API...</span>
+        </div>
       </div>
     </header>
 
-    <!-- Main Workspace Grid -->
-    <main class="workspace-grid">
-      <!-- Left Column: Controls & Claim Input -->
-      <section class="panel control-panel">
-        <div class="panel-header">
-          <h2>1. Select or Load Claim</h2>
-        </div>
-        
-        <div class="control-body">
-          <div class="form-group">
-            <label for="sample-select">Pre-Loaded Test Claims (PS02 Demo):</label>
-            <select id="sample-select" class="form-control">
-              <option value="">-- Choose Sample Case --</option>
-            </select>
+    <!-- Main Workstation Layout (3-Column Grid) -->
+    <div class="workstation-body">
+
+      <!-- LEFT COLUMN: Claims Queue & Payload Control (Shadcn Sidebar Pattern) -->
+      <aside class="sidebar-panel">
+        <div class="sidebar-header">
+          <div class="sidebar-title-group">
+            <h3>Claims Queue</h3>
+            <span class="badge badge-secondary">5 Cases</span>
           </div>
-
-          <div class="button-row">
-            <button id="btn-load-sample" class="btn btn-secondary">Load Selected Claim</button>
-            <button id="btn-run-review" class="btn btn-primary">⚡ Run Evidence Review</button>
-          </div>
-
-          <hr class="divider">
-
-          <div class="panel-header">
-            <h3>Claim Evidence Input Payload</h3>
-          </div>
-
-          <div class="form-group">
-            <label for="payload-json">JSON Claim Evidence Payload (Editable):</label>
-            <textarea id="payload-json" class="code-editor" spellcheck="false" placeholder="Select a sample claim above or paste JSON claim payload..."></textarea>
-          </div>
-        </div>
-      </section>
-
-      <!-- Right Column: Evidence Review Results -->
-      <section class="panel results-panel">
-        <div class="panel-header flex-between">
-          <h2>2. Evidence Review & Reasoning Report</h2>
-          <div id="ai-mode-pill" class="pill pill-mode">Ready</div>
+          <p class="sidebar-desc">Select a motor claim to investigate evidence & policy rules.</p>
         </div>
 
-        <div id="results-container" class="results-body">
-          <!-- Empty State Prompt -->
-          <div id="empty-state" class="empty-state">
-            <div class="empty-icon">📊</div>
-            <h3>No Evidence Review Executed Yet</h3>
-            <p>Select a sample claim case on the left and click <strong>"⚡ Run Evidence Review"</strong> to generate a grounded policy analysis.</p>
+        <!-- Hidden Native Select for App Compatibility -->
+        <div class="form-group hidden-select">
+          <select id="sample-select" class="form-control">
+            <option value="">-- Choose Sample Case --</option>
+          </select>
+        </div>
+
+        <!-- Visual Claims Queue List -->
+        <div id="claims-queue-list" class="claims-queue-list">
+          <!-- Populated dynamically via app.js -->
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Payload Editor Section (Collapsible Accordion/Sheet) -->
+        <div class="payload-section">
+          <button id="btn-toggle-payload" class="btn btn-outline btn-full flex-between">
+            <span>📝 Edit JSON Payload</span>
+            <span id="payload-toggle-icon">▼</span>
+          </button>
+
+          <div id="payload-container" class="payload-container hidden">
+            <label for="payload-json" class="label-sm">Claim Evidence Payload (JSON):</label>
+            <textarea id="payload-json" class="code-editor" spellcheck="false" placeholder="Select a sample claim or paste raw claim JSON..."></textarea>
+            <div class="payload-actions">
+              <button id="btn-load-sample" class="btn btn-secondary btn-sm">Reload JSON</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- CENTER COLUMN: Claim Investigation Workspace -->
+      <main class="main-workspace">
+
+        <!-- Active Claim Toolbar -->
+        <div id="active-claim-toolbar" class="claim-toolbar">
+          <div class="claim-info">
+            <span class="label-xs">ACTIVE CASE</span>
+            <h2 id="active-claim-id" class="claim-heading">Select a Claim</h2>
+            <span id="active-claim-meta" class="claim-subtext">Click any claim in the left queue to begin analysis</span>
           </div>
 
-          <!-- Loading Spinner -->
-          <div id="loading-state" class="loading-state hidden">
-            <div class="spinner"></div>
-            <p id="loading-text">Analyzing claim documents, executing deterministic rules, retrieving policy clauses, and checking contradictions...</p>
+          <div class="toolbar-actions">
+            <button id="btn-run-review" class="btn btn-primary btn-lg">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+              <span>Execute Evidence Review</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty Initial State -->
+        <div id="empty-state" class="empty-state-card">
+          <div class="empty-icon-wrap">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <circle cx="11" cy="14" r="3"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <h3>No Evidence Review Executed</h3>
+          <p>Select a claim from the queue on the left and click <strong>"Execute Evidence Review"</strong> to evaluate motor policy coverage, cross-document consistency, and deterministic rules.</p>
+        </div>
+
+        <!-- Loading Spinner State -->
+        <div id="loading-state" class="loading-state-card hidden">
+          <div class="spinner-ring"></div>
+          <div class="loading-text-group">
+            <h4>Executing ClaimLens Analysis Pipeline</h4>
+            <p id="loading-text">Extracting evidence, checking deterministic rules, running policy RAG retrieval, and evaluating cross-document contradictions...</p>
+          </div>
+        </div>
+
+        <!-- Active Investigation Review Results -->
+        <div id="review-content" class="review-content hidden">
+
+          <!-- Recommendation Overview Summary Bar (Shadcn Card / Metric Header) -->
+          <div id="recommendation-banner" class="summary-metric-bar">
+            <div class="metric-item rec-item">
+              <span class="metric-label">RECOMMENDED DISPOSITION</span>
+              <div id="recommendation-text" class="recommendation-badge APPROVE">APPROVE</div>
+            </div>
+
+            <div class="metric-item">
+              <span class="metric-label">DOCUMENT COMPLETENESS</span>
+              <span id="completeness-pill" class="status-tag">COMPLETE</span>
+            </div>
+
+            <div class="metric-item">
+              <span class="metric-label">CROSS-DOC CONSISTENCY</span>
+              <span id="consistency-pill" class="status-tag">CONSISTENT</span>
+            </div>
+
+            <div class="metric-item">
+              <span class="metric-label">REASONING CONFIDENCE</span>
+              <span id="confidence-pill" class="status-tag">HIGH</span>
+            </div>
+
+            <div class="metric-item">
+              <span class="metric-label">ENGINE MODE</span>
+              <span id="ai-mode-pill" class="status-tag mode">Gemini 3.6 Flash</span>
+            </div>
           </div>
 
-          <!-- Active Review Dashboard -->
-          <div id="review-content" class="review-content hidden">
-            <!-- Recommendation Banner -->
-            <div id="recommendation-banner" class="banner">
-              <div class="banner-main">
-                <div class="banner-label">OVERALL RECOMMENDATION</div>
-                <div id="recommendation-text" class="recommendation-badge">APPROVE</div>
-              </div>
-              <div class="banner-pills">
-                <span id="completeness-pill" class="pill">COMPLETE</span>
-                <span id="consistency-pill" class="pill">CONSISTENT</span>
-                <span id="confidence-pill" class="pill">HIGH CONFIDENCE</span>
-              </div>
+          <!-- Human Escalation Alert (Shadcn Alert Component) -->
+          <div id="escalation-banner" class="alert alert-destructive hidden">
+            <div class="alert-icon-col">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="alert-body">
+              <h4 class="alert-title">HUMAN ESCALATION MANDATED</h4>
+              <p id="escalation-reason-text">Evidence requires manual investigator verification due to conflicting or incomplete facts.</p>
+            </div>
+          </div>
+
+          <!-- Investigation Tabs (Shadcn Tabs Component Pattern) -->
+          <div class="tabs-wrapper">
+            <div class="tabs-header">
+              <button class="tab-btn active" data-tab="tab-contradictions">
+                <span>Contradiction Detection</span>
+                <span id="badge-contradiction-count" class="badge-counter badge-danger">0</span>
+              </button>
+              <button class="tab-btn" data-tab="tab-findings">
+                <span>Extracted Evidence</span>
+              </button>
+              <button class="tab-btn" data-tab="tab-deterministic">
+                <span>Deterministic Rules</span>
+              </button>
+              <button class="tab-btn" data-tab="tab-clauses">
+                <span>Policy Citations (RAG)</span>
+              </button>
             </div>
 
-            <!-- Escalation Banner -->
-            <div id="escalation-banner" class="banner banner-escalation hidden">
-              <div class="escalation-icon">⚠️</div>
-              <div>
-                <strong class="escalation-title">HUMAN ESCALATION REQUIRED</strong>
-                <p id="escalation-reason-text">Reason for escalation...</p>
-              </div>
-            </div>
-
-            <!-- Executive Reasoning Summary -->
-            <div class="card summary-card">
-              <h3>AI Executive Summary & Grounding</h3>
-              <p id="reasoning-summary-text">Summary text...</p>
-            </div>
-
-            <!-- Tabs Navigation -->
-            <div class="tabs-nav">
-              <button class="tab-btn active" data-tab="tab-contradictions">Contradictions <span id="badge-contradiction-count" class="tab-count">0</span></button>
-              <button class="tab-btn" data-tab="tab-deterministic">Deterministic Checks</button>
-              <button class="tab-btn" data-tab="tab-clauses">Policy Citations (RAG)</button>
-              <button class="tab-btn" data-tab="tab-findings">Evidence Findings</button>
-              <button class="tab-btn" data-tab="tab-steps">Investigator Steps</button>
-            </div>
-
-            <!-- Tab Content 1: Contradictions -->
+            <!-- Tab 1: Contradictions -->
             <div id="tab-contradictions" class="tab-content active">
-              <div id="contradictions-list" class="cards-list"></div>
+              <div id="contradictions-list" class="contradictions-stack">
+                <!-- Dynamically populated -->
+              </div>
             </div>
 
-            <!-- Tab Content 2: Deterministic Checks -->
-            <div id="tab-deterministic" class="tab-content">
-              <div id="deterministic-checks-list" class="cards-list"></div>
-            </div>
-
-            <!-- Tab Content 3: Policy Citations -->
-            <div id="tab-clauses" class="tab-content">
-              <div id="policy-clauses-list" class="cards-list"></div>
-            </div>
-
-            <!-- Tab Content 4: Evidence Findings -->
+            <!-- Tab 2: Extracted Evidence -->
             <div id="tab-findings" class="tab-content">
-              <div id="findings-list" class="cards-list"></div>
-            </div>
-
-            <!-- Tab Content 5: Investigator Steps -->
-            <div id="tab-steps" class="tab-content">
-              <div class="card">
-                <h4>Recommended Investigator Actions</h4>
-                <ul id="next-steps-list" class="checklist"></ul>
-              </div>
-              <div class="card mt-15">
-                <h4>Unknowns & Ambiguities</h4>
-                <ul id="unknowns-list" class="checklist warning-list"></ul>
+              <div id="findings-list" class="findings-stack">
+                <!-- Dynamically populated -->
               </div>
             </div>
 
+            <!-- Tab 3: Deterministic Rules -->
+            <div id="tab-deterministic" class="tab-content">
+              <div id="deterministic-checks-list" class="rules-table-view">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Tab 4: Policy Citations (RAG) -->
+            <div id="tab-clauses" class="tab-content">
+              <div id="policy-clauses-list" class="clauses-stack">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      <!-- RIGHT COLUMN: Analytical Report & Investigator Action Panel -->
+      <aside class="analyst-panel">
+
+        <!-- Executive Reasoning Card (Shadcn Card) -->
+        <div class="workstation-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+              <h4>AI Assessment Report</h4>
+            </div>
+            <span class="badge badge-outline">Grounded</span>
+          </div>
+          <div class="card-body">
+            <p id="reasoning-summary-text" class="reasoning-paragraph">Select a claim and click "Execute Evidence Review" to inspect AI reasoning summary.</p>
           </div>
         </div>
-      </section>
-    </main>
+
+        <!-- Investigator Actions Card (Shadcn Card / Checklist) -->
+        <div class="workstation-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 11 12 14 22 4"></polyline>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+              <h4>Investigator Action Plan</h4>
+            </div>
+          </div>
+          <div class="card-body">
+            <ul id="next-steps-list" class="checklist-items">
+              <li class="empty-list-text">Pending evidence review...</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Unknowns & Ambiguities Card -->
+        <div class="workstation-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              <h4>Flags & Ambiguities</h4>
+            </div>
+          </div>
+          <div class="card-body">
+            <ul id="unknowns-list" class="checklist-items warning-checklist">
+              <li class="empty-list-text">Pending evidence review...</li>
+            </ul>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
   </div>
 
   <script src="/static/app.js"></script>
