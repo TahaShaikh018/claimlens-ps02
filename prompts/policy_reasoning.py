@@ -68,18 +68,28 @@ Deductible Assessment: {deductible_explanation}
 ============================================================
 REQUIRED TASK:
 ============================================================
-Synthesize these findings into a structured evidence review JSON with the following key fields:
-- overall_recommendation ("APPROVE", "REJECT", or "REQUEST INFORMATION")
-- human_escalation_required (true or false)
-- escalation_reason (string or null)
-- confidence_level ("HIGH", "MEDIUM", or "LOW")
-- completeness_status ("COMPLETE" or "INCOMPLETE")
-- consistency_status ("CONSISTENT" or "CONTRADICTORY")
-- applicable_policy_clauses (array of clause citations)
-- evidence_findings (array of structured evidence findings with exact source citations)
-- investigator_next_steps (array of concise, actionable steps)
-- unknowns_and_ambiguities (array of unresolved points)
-- ai_reasoning_summary (concise executive summary for the investigator)
+Synthesize these findings into a structured evidence review JSON matching this exact structure:
+{{
+  "overall_recommendation": "APPROVE" | "REJECT" | "REQUEST INFORMATION",
+  "human_escalation_required": true | false,
+  "escalation_reason": "Explanation string if escalated, or null",
+  "confidence_level": "HIGH" | "MEDIUM" | "LOW",
+  "completeness_status": "COMPLETE" | "INCOMPLETE",
+  "consistency_status": "CONSISTENT" | "CONTRADICTORY",
+  "evidence_findings": [
+    {{
+      "finding_id": "FIND-1",
+      "summary": "Short title of the finding",
+      "evidence_source": "Source document or field",
+      "policy_clause": "Policy Clause ID like POLICY-04",
+      "reasoning": "Detailed explanation of why this evidence matters",
+      "finding_type": "EXCLUSION" | "COMPLIANCE" | "MISSING_DOC" | "CONTRADICTION" | "UNCERTAINTY"
+    }}
+  ],
+  "investigator_next_steps": ["Actionable step 1", "Actionable step 2"],
+  "unknowns_and_ambiguities": ["Unresolved question 1"],
+  "ai_reasoning_summary": "Concise executive summary for the claims investigator"
+}}
 
-Respond strictly with a valid JSON object matching these fields.
+Respond strictly with valid JSON.
 """
