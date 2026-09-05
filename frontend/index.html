@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClaimLens — Motor Insurance Claims Evidence Review Assistant (PS02)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header Navbar -->
+    <header class="navbar">
+      <div class="logo-group">
+        <div class="logo-icon">🔍</div>
+        <div>
+          <h1 class="logo-title">ClaimLens</h1>
+          <span class="logo-subtitle">Motor Insurance Claims Evidence Review Assistant</span>
+        </div>
+      </div>
+      <div class="badge-group">
+        <span class="badge track-badge">TRACK ID: PS02</span>
+        <span id="api-status-badge" class="badge status-badge loading">Checking API...</span>
+      </div>
+    </header>
+
+    <!-- Main Workspace Grid -->
+    <main class="workspace-grid">
+      <!-- Left Column: Controls & Claim Input -->
+      <section class="panel control-panel">
+        <div class="panel-header">
+          <h2>1. Select or Load Claim</h2>
+        </div>
+        
+        <div class="control-body">
+          <div class="form-group">
+            <label for="sample-select">Pre-Loaded Test Claims (PS02 Demo):</label>
+            <select id="sample-select" class="form-control">
+              <option value="">-- Choose Sample Case --</option>
+            </select>
+          </div>
+
+          <div class="button-row">
+            <button id="btn-load-sample" class="btn btn-secondary">Load Selected Claim</button>
+            <button id="btn-run-review" class="btn btn-primary">⚡ Run Evidence Review</button>
+          </div>
+
+          <hr class="divider">
+
+          <div class="panel-header">
+            <h3>Claim Evidence Input Payload</h3>
+          </div>
+
+          <div class="form-group">
+            <label for="payload-json">JSON Claim Evidence Payload (Editable):</label>
+            <textarea id="payload-json" class="code-editor" spellcheck="false" placeholder="Select a sample claim above or paste JSON claim payload..."></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Evidence Review Results -->
+      <section class="panel results-panel">
+        <div class="panel-header flex-between">
+          <h2>2. Evidence Review & Reasoning Report</h2>
+          <div id="ai-mode-pill" class="pill pill-mode">Ready</div>
+        </div>
+
+        <div id="results-container" class="results-body">
+          <!-- Empty State Prompt -->
+          <div id="empty-state" class="empty-state">
+            <div class="empty-icon">📊</div>
+            <h3>No Evidence Review Executed Yet</h3>
+            <p>Select a sample claim case on the left and click <strong>"⚡ Run Evidence Review"</strong> to generate a grounded policy analysis.</p>
+          </div>
+
+          <!-- Loading Spinner -->
+          <div id="loading-state" class="loading-state hidden">
+            <div class="spinner"></div>
+            <p id="loading-text">Analyzing claim documents, executing deterministic rules, retrieving policy clauses, and checking contradictions...</p>
+          </div>
+
+          <!-- Active Review Dashboard -->
+          <div id="review-content" class="review-content hidden">
+            <!-- Recommendation Banner -->
+            <div id="recommendation-banner" class="banner">
+              <div class="banner-main">
+                <div class="banner-label">OVERALL RECOMMENDATION</div>
+                <div id="recommendation-text" class="recommendation-badge">APPROVE</div>
+              </div>
+              <div class="banner-pills">
+                <span id="completeness-pill" class="pill">COMPLETE</span>
+                <span id="consistency-pill" class="pill">CONSISTENT</span>
+                <span id="confidence-pill" class="pill">HIGH CONFIDENCE</span>
+              </div>
+            </div>
+
+            <!-- Escalation Banner -->
+            <div id="escalation-banner" class="banner banner-escalation hidden">
+              <div class="escalation-icon">⚠️</div>
+              <div>
+                <strong class="escalation-title">HUMAN ESCALATION REQUIRED</strong>
+                <p id="escalation-reason-text">Reason for escalation...</p>
+              </div>
+            </div>
+
+            <!-- Executive Reasoning Summary -->
+            <div class="card summary-card">
+              <h3>AI Executive Summary & Grounding</h3>
+              <p id="reasoning-summary-text">Summary text...</p>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="tabs-nav">
+              <button class="tab-btn active" data-tab="tab-contradictions">Contradictions <span id="badge-contradiction-count" class="tab-count">0</span></button>
+              <button class="tab-btn" data-tab="tab-deterministic">Deterministic Checks</button>
+              <button class="tab-btn" data-tab="tab-clauses">Policy Citations (RAG)</button>
+              <button class="tab-btn" data-tab="tab-findings">Evidence Findings</button>
+              <button class="tab-btn" data-tab="tab-steps">Investigator Steps</button>
+            </div>
+
+            <!-- Tab Content 1: Contradictions -->
+            <div id="tab-contradictions" class="tab-content active">
+              <div id="contradictions-list" class="cards-list"></div>
+            </div>
+
+            <!-- Tab Content 2: Deterministic Checks -->
+            <div id="tab-deterministic" class="tab-content">
+              <div id="deterministic-checks-list" class="cards-list"></div>
+            </div>
+
+            <!-- Tab Content 3: Policy Citations -->
+            <div id="tab-clauses" class="tab-content">
+              <div id="policy-clauses-list" class="cards-list"></div>
+            </div>
+
+            <!-- Tab Content 4: Evidence Findings -->
+            <div id="tab-findings" class="tab-content">
+              <div id="findings-list" class="cards-list"></div>
+            </div>
+
+            <!-- Tab Content 5: Investigator Steps -->
+            <div id="tab-steps" class="tab-content">
+              <div class="card">
+                <h4>Recommended Investigator Actions</h4>
+                <ul id="next-steps-list" class="checklist"></ul>
+              </div>
+              <div class="card mt-15">
+                <h4>Unknowns & Ambiguities</h4>
+                <ul id="unknowns-list" class="checklist warning-list"></ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
